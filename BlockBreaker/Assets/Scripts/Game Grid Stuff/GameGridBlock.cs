@@ -33,7 +33,7 @@ public class GameGridBlock : MonoBehaviour
 
 
 	/// <summary>
-	/// Should be called when this block is about to be destroyed.
+	/// Should be called when this block is about to be cleared.
 	/// </summary>
 	public void OnBeingCleared()
 	{
@@ -44,6 +44,13 @@ public class GameGridBlock : MonoBehaviour
 				GameConstants.Instance.CreateBlockPush(block, pos);
 
 		((GameObject)GameConstants.Instantiate(GameConstants.Instance.ClearBlocksEffectPrefab)).transform.position = pos;
+	}
+	/// <summary>
+	/// Should be called when this block is about to be destroyed.
+	/// </summary>
+	public void OnBeingDestroyed()
+	{
+
 	}
 
 

@@ -31,15 +31,7 @@ public class GameGridGenerator : MonoBehaviour
 	}
 
 
-	void Awake()
-	{
-		if (BlockPrefab == null)
-		{
-			Debug.LogError("'BlockPrefab' field in 'GameGridGenerator' " +
-						     "component isn't set!");
-		}
-	}
-	void Start()
+	public void GenerateBlocks(bool pausePlayerInput)
 	{
 		//Set up the grid.
 		//Start the objects pushed radially away from their target positions
@@ -59,10 +51,22 @@ public class GameGridGenerator : MonoBehaviour
 							  Random.Range(0, GameConstants.Instance.NBlockTypes)).TempMoveSpeedScale = 0.25f;
 			}
 		}
-
-
+		
+		
 		//Disable the player's input for a short time to let the blocks settle into place.
-		StartCoroutine(PauseInputCoroutine());
+		if (pausePlayerInput)
+		{
+			StartCoroutine(PauseInputCoroutine());
+		}
+	}
+
+
+	void Awake()
+	{
+		if (BlockPrefab == null)
+		{
+			Debug.LogError("'BlockPrefab' field in 'GameGridGenerator' " + "component isn't set!");
+		}
 	}
 
 	private IEnumerator PauseInputCoroutine()

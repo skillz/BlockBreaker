@@ -98,6 +98,22 @@ public class GameGrid : MonoBehaviour
 	}
 
 	/// <summary>
+	/// Destroys the given block without clearing adjacent blocks of the same color.
+	/// </summary>
+	public void DestroyBlock(Vector2i loc)
+	{
+		if (blocks[loc.X, loc.Y] == null)
+		{
+			return;
+		}
+
+		blocks[loc.X, loc.Y].OnBeingDestroyed();
+		Destroy(blocks[loc.X, loc.Y].gameObject);
+		poses.Remove(blocks[loc.X, loc.Y]);
+		blocks[loc.X, loc.Y] = null;
+	}
+
+	/// <summary>
 	/// Clears the given location and all blocks that are near it, causing blocks above to fall.
 	/// Returns the location of the blocks that were cleared.
 	/// </summary>
@@ -197,10 +213,5 @@ public class GameGrid : MonoBehaviour
 		}
 		
 		Instance = this;
-	}
-	
-	void Update()
-	{
-		
 	}
 }

@@ -79,6 +79,10 @@ public class GameplayController_Timed : GameplayController
 			FinalScore += Mathf.RoundToInt(BaseBlockScoreValue * blockMultiplier);
 		};
 	}
+	void Start()
+	{
+        FindObjectOfType<GameGridGenerator>().GenerateBlocks(true);
+	}
 
 	protected override void Update ()
 	{
@@ -92,7 +96,15 @@ public class GameplayController_Timed : GameplayController
 		}
 
 		//Update UI.
-		TimeLeftLabel.text = GameConstants.CutOffDecimals(TimeLeft, 1).ToString();
+        float val = GameConstants.CutOffDecimals(TimeLeft, 1);
+        if (val == (int)val)
+        {
+            TimeLeftLabel.text = val.ToString() + ".0";
+        }
+        else
+        {
+            TimeLeftLabel.text = val.ToString();
+        }
 	}
 
 
