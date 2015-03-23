@@ -12,4 +12,9 @@ public class MenuController : MonoBehaviour
 	{
 		Application.LoadLevel("TurnBasedGameScene");
 	}
+
+	public void OnMultiplayerButton()
+	{
+		Skillz.launchTurnBasedSkillz(Skillz.SkillzOrientation.SkillzLandscape, true);
+	}
 }

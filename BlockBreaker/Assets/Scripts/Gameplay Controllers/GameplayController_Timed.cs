@@ -52,6 +52,8 @@ public class GameplayController_Timed : GameplayController
 	public void Abandon()
 	{
 		Application.LoadLevel("MainMenu");
+		if (Skillz.tournamentIsInProgress())
+			Skillz.notifyPlayerAbortWithCompletion();
 	}
 
 
@@ -77,6 +79,11 @@ public class GameplayController_Timed : GameplayController
 
 			float blockMultiplier = Mathf.Pow (clearedBlocks.Count, ScoreBlockExponent);
 			FinalScore += Mathf.RoundToInt(BaseBlockScoreValue * blockMultiplier);
+
+			if (Skillz.tournamentIsInProgress())
+			{
+				Skillz.updatePlayersCurrentScore(FinalScore);
+			}
 		};
 	}
 	void Start()
@@ -92,7 +99,15 @@ public class GameplayController_Timed : GameplayController
 		TimeLeft -= Time.deltaTime;
 		if (TimeLeft <= 0.0f)
 		{
-			Application.LoadLevel("PresentTimedScore");
+			if (Skillz.tournamentIsInProgress())
+			{
+				Application.LoadLevel("MainMenu");
+				Skillz.displayTournamentResultsWithScore(FinalScore);
+			}
+			else
+			{
+				Application.LoadLevel("PresentTimedScore");
+			}
 		}
 
 		//Update UI.

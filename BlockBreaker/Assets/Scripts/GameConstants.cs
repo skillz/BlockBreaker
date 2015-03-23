@@ -53,11 +53,17 @@ public class GameConstants : MonoBehaviour
 			Debug.LogError("There is more than one 'GameConstants' component in the scene!");
 		}
 		Instance = this;
+		
+		if (Skillz.tournamentIsInProgress ())
+		{
+			SkillzDelegate.SetUpSkillzDifficulty();
+		}
 
 		if (BlockMaterials.Count < NBlockTypes)
 		{
 			Debug.LogError("This scene uses " + NBlockTypes.ToString() + " different block types, " +
 						   "but only has " + BlockMaterials.Count.ToString() + " different materials!");
+			return;
 		}
 	}
 

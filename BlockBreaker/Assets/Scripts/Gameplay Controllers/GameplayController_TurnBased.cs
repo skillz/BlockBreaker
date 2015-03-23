@@ -6,7 +6,24 @@ using UnityEngine;
 
 public class GameplayController_TurnBased : GameplayController
 {
+	/// <summary>
+	/// Game state loaded in from Skillz in the event of an online turn-based tournament.
+	/// </summary>
+	public static TurnBasedGameData Skillz_GameData = new TurnBasedGameData();
+    /// <summary>
+    /// The Skillz ID of this player.
+    /// </summary>
+    public static string PlayerUniqueID;
+	/// <summary>
+	/// Whether the player has taken a turn yet.
+    /// Used in Skillz turn-based tournaments.
+	/// </summary>
+    public static bool Skillz_tookTurn;
+
+
+	//Player scores are stored statically so they can be accessed across several scenes.
 	public static int PlayerOneScore, PlayerTwoScore;
+
 
 	/// <summary>
 	/// There are two players, and it's either player 1's turn or player 2's turn.
@@ -17,6 +34,7 @@ public class GameplayController_TurnBased : GameplayController
 
 	public UnityEngine.UI.Text CurrentPlayerUIText,
 							   TurnsLeftUIText;
+	public GameObject AbandonButton;
 
 	/// <summary>
 	/// The minimum amount of time between moves.
@@ -50,6 +68,8 @@ public class GameplayController_TurnBased : GameplayController
 	public void Abandon()
 	{
 		Application.LoadLevel("MainMenu");
+		if (Skillz.tournamentIsInProgress())
+			Skillz.notifyPlayerAbortWithCompletion();
 	}
 
 	protected override void Awake()
@@ -82,22 +102,143 @@ public class GameplayController_TurnBased : GameplayController
 			//Change turns.
 			IsPlayer1Turn = !IsPlayer1Turn;
 			TurnsLeft -= 1;
+			Skillz_tookTurn = true;
 		};
 	}
-	protected override void Update ()
+	void Start()
 	{
-		base.Update ();
+        Skillz_tookTurn = false;
+
+        GameGridGenerator gen = FindObjectOfType<GameGridGenerator>();
+
+        //If we're in a Skillz turn-based tournament, some special logic for block generation is needed.
+        if (Skillz.tournamentIsInProgress())
+        {
+            CurrentPlayerUIText.text = "Your turn";
+
+            //If starting a new tournament, randomize the block layout.
+            if (Skillz_GameData.Blocks == null)
+            {
+                gen.Seed = Skillz.getRandomNumber();
+            }
+            //Otherwise, just set up the generator to create the right number of blocks.
+            else
+            {
+                TurnsLeft = Skillz_GameData.TurnsLeft;
+
+                gen.NBlocksX = Skillz_GameData.Blocks.GetLength(0);
+                gen.NBlocksY = Skillz_GameData.Blocks.GetLength(1);
+
+                IsPlayer1Turn = true;
+            }
+        }
+
+        gen.GenerateBlocks(true);
+
+        //Now that the blocks have been generated, fill them in with the correct colors
+        //    if we're continuing a Skillz tournament.
+        if (Skillz.tournamentIsInProgress() && Skillz_GameData.Blocks != null)
+        {
+            for (int x = 0; x < gen.NBlocksX; ++x)
+            {
+                for (int y = 0; y < gen.NBlocksY; ++y)
+                {
+                    Vector2i loc = new Vector2i(x, y);
+
+                    if (GameGrid.Instance.GetBlock(new Vector2i(x, y)) != null)
+                    {
+                        if (Skillz_GameData.Blocks[x, y] >= 0)
+                        {
+                            GameGrid.Instance.GetBlock(loc).ColorID = Skillz_GameData.Blocks[x, y];
+                        }
+                        else
+                        {
+                            GameGrid.Instance.DestroyBlock(loc);
+                        }
+                    }
+                }
+            }
+
+            //Set up player scores.
+            PlayerOneScore = Skillz_GameData.GetScore(PlayerUniqueID);
+            PlayerTwoScore = Skillz_GameData.GetOtherScore(PlayerUniqueID);
+        }
+	}
+	protected override void Update()
+	{
+		base.Update();
 
 		//Update UI text.
-		CurrentPlayerUIText.text = (IsPlayer1Turn ? "Player 1" : "Player 2");
-		TurnsLeftUIText.text = TurnsLeft.ToString () + " left";
+		TurnsLeftUIText.text = TurnsLeft.ToString() + " left";
+        if (!Skillz.tournamentIsInProgress())
+        {
+            CurrentPlayerUIText.text = (IsPlayer1Turn ? "Player 1" : "Player 2");
+        }
 
-		//Check for end of game.
-		if (!LocalPlayer.IsInputDisabled && TurnsLeft <= 0)
-		{
-			Application.LoadLevel("PresentTurnBasedScore");
-		}
+        //If in online tournament, check for end of turn.
+        if (Skillz.tournamentIsInProgress())
+        {
+            if (Skillz_tookTurn && !LocalPlayer.IsInputDisabled)
+            {
+                //Serialize the game data for output.
+                string knownID = Skillz_GameData.KnownPlayerID;
+                Skillz_GameData = new TurnBasedGameData();
+                Skillz_GameData.TurnsLeft = TurnsLeft;
+                Skillz_GameData.KnownPlayerID = knownID;
+                Skillz_GameData.SetScore(PlayerUniqueID, PlayerOneScore);
+                Skillz_GameData.SetOtherScore(PlayerUniqueID, PlayerTwoScore);
+                Skillz_GameData.Blocks = new int[GameGrid.Instance.GetGridSize().X,
+                                                 GameGrid.Instance.GetGridSize().Y];
+                for (int x = 0; x < GameGrid.Instance.GetGridSize().X; ++x)
+                {
+                    for (int y = 0; y < GameGrid.Instance.GetGridSize().Y; ++y)
+                    {
+                        Vector2i loc = new Vector2i(x, y);
+                        GameGridBlock block = GameGrid.Instance.GetBlock(loc);
+
+                        if (block == null)
+                        {
+                            Skillz_GameData.Blocks[x, y] = -1;
+                        }
+                        else
+                        {
+                            Skillz_GameData.Blocks[x, y] = block.ColorID;
+                        }
+                    }
+                }
+
+                //Is the game over?
+                if (TurnsLeft == 0)
+                {
+                    Skillz_tookTurn = false;
+                    Skillz.completeTurnWithGameData(Skillz_GameData.ToString(),
+                                                    PlayerOneScore.ToString(),
+                                                    PlayerOneScore, PlayerTwoScore,
+                                                    Skillz.SkillzTurnBasedRoundOutcome.SkillzRoundNoOutcome,
+                                                    Skillz.SkillzTurnBasedMatchOutcome.SkillzMatchWin);
+                }
+                //Otherwise, continue as normal.
+                else
+                {
+                    Skillz_tookTurn = false;
+                    Skillz.completeTurnWithGameData(Skillz_GameData.ToString(),
+                                                    PlayerOneScore.ToString(),
+                                                    PlayerOneScore, PlayerTwoScore,
+                                                    Skillz.SkillzTurnBasedRoundOutcome.SkillzRoundNoOutcome,
+                                                    Skillz.SkillzTurnBasedMatchOutcome.SkillzMatchNoOutcome);
+                }
+            }
+        }
+        //Otherwise, check for end of game.
+        else
+        {
+			if (!LocalPlayer.IsInputDisabled && TurnsLeft <= 0)
+			{
+				Application.LoadLevel("PresentTurnBasedScore");
+			}
+        }
 	}
+
 
 	private System.Collections.IEnumerator WaitSpawnCoroutine(List<Vector2i> clearedBlocks)
 	{
