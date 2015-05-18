@@ -15,6 +15,6 @@ public class MenuController : MonoBehaviour
 
 	public void OnMultiplayerButton()
 	{
-		Skillz.launchTurnBasedSkillz(Skillz.SkillzOrientation.SkillzLandscape, true);
+		SkillzSDK.Api.LaunchSkillz(SkillzSDK.Orientation.Landscape);
 	}
 }

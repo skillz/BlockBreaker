@@ -15,7 +15,7 @@ public class GameGridBlockRenderer : MonoBehaviour
 
 	void Awake()
 	{
-		rend = renderer;
+		rend = GetComponent<Renderer>();
 		block = GetComponent<GameGridBlock>();
 	}
 

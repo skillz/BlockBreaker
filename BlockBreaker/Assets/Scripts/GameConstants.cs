@@ -54,9 +54,9 @@ public class GameConstants : MonoBehaviour
 		}
 		Instance = this;
 		
-		if (Skillz.tournamentIsInProgress ())
+		if (SkillzSDK.Api.IsTournamentInProgress)
 		{
-			SkillzDelegate.SetUpSkillzDifficulty();
+			MySkillzDelegate.SetUpSkillzDifficulty();
 		}
 
 		if (BlockMaterials.Count < NBlockTypes)

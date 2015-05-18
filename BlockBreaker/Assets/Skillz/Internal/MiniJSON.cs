@@ -38,7 +38,7 @@ namespace MiniJSON {
     //  using UnityEngine;
     //  using System.Collections;
     //  using System.Collections.Generic;
-    //  using MiniJSON;
+    //  using SkillzSDK;
     //
     //  public class MiniJSONTest : MonoBehaviour {
     //      void Start () {

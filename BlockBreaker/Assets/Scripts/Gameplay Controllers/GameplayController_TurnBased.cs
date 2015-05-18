@@ -68,8 +68,8 @@ public class GameplayController_TurnBased : GameplayController
 	public void Abandon()
 	{
 		Application.LoadLevel("MainMenu");
-		if (Skillz.tournamentIsInProgress())
-			Skillz.notifyPlayerAbortWithCompletion();
+		if (SkillzSDK.Api.IsTournamentInProgress)
+			SkillzSDK.Api.AbortGame();
 	}
 
 	protected override void Awake()
@@ -112,14 +112,14 @@ public class GameplayController_TurnBased : GameplayController
         GameGridGenerator gen = FindObjectOfType<GameGridGenerator>();
 
         //If we're in a Skillz turn-based tournament, some special logic for block generation is needed.
-        if (Skillz.tournamentIsInProgress())
+        if (SkillzSDK.Api.IsTournamentInProgress)
         {
             CurrentPlayerUIText.text = "Your turn";
 
             //If starting a new tournament, randomize the block layout.
             if (Skillz_GameData.Blocks == null)
             {
-                gen.Seed = Skillz.getRandomNumber();
+                gen.Seed = SkillzSDK.Api.GetRandomNumber();
             }
             //Otherwise, just set up the generator to create the right number of blocks.
             else
@@ -137,7 +137,7 @@ public class GameplayController_TurnBased : GameplayController
 
         //Now that the blocks have been generated, fill them in with the correct colors
         //    if we're continuing a Skillz tournament.
-        if (Skillz.tournamentIsInProgress() && Skillz_GameData.Blocks != null)
+        if (SkillzSDK.Api.IsTournamentInProgress && Skillz_GameData.Blocks != null)
         {
             for (int x = 0; x < gen.NBlocksX; ++x)
             {
@@ -170,13 +170,13 @@ public class GameplayController_TurnBased : GameplayController
 
 		//Update UI text.
 		TurnsLeftUIText.text = TurnsLeft.ToString() + " left";
-        if (!Skillz.tournamentIsInProgress())
+        if (!SkillzSDK.Api.IsTournamentInProgress)
         {
             CurrentPlayerUIText.text = (IsPlayer1Turn ? "Player 1" : "Player 2");
         }
 
         //If in online tournament, check for end of turn.
-        if (Skillz.tournamentIsInProgress())
+        if (SkillzSDK.Api.IsTournamentInProgress)
         {
             if (Skillz_tookTurn && !LocalPlayer.IsInputDisabled)
             {
@@ -210,22 +210,29 @@ public class GameplayController_TurnBased : GameplayController
                 //Is the game over?
                 if (TurnsLeft == 0)
                 {
+					SkillzSDK.TurnBasedMatchOutcome whoWon = SkillzSDK.TurnBasedMatchOutcome.NoOutcome;
+					if (PlayerOneScore > PlayerTwoScore)
+						whoWon = SkillzSDK.TurnBasedMatchOutcome.Win;
+					else if (PlayerOneScore < PlayerTwoScore)
+						whoWon = SkillzSDK.TurnBasedMatchOutcome.Loss;
+					else whoWon = SkillzSDK.TurnBasedMatchOutcome.Draw;
+
                     Skillz_tookTurn = false;
-                    Skillz.completeTurnWithGameData(Skillz_GameData.ToString(),
-                                                    PlayerOneScore.ToString(),
-                                                    PlayerOneScore, PlayerTwoScore,
-                                                    Skillz.SkillzTurnBasedRoundOutcome.SkillzRoundNoOutcome,
-                                                    Skillz.SkillzTurnBasedMatchOutcome.SkillzMatchWin);
+					SkillzSDK.Api.FinishTurn(Skillz_GameData.ToString(),
+					                         SkillzSDK.TurnBasedRoundOutcome.NoOutcome,
+					                         whoWon,
+											 PlayerOneScore.ToString(),
+					                         PlayerOneScore, PlayerTwoScore);
                 }
                 //Otherwise, continue as normal.
                 else
                 {
                     Skillz_tookTurn = false;
-                    Skillz.completeTurnWithGameData(Skillz_GameData.ToString(),
-                                                    PlayerOneScore.ToString(),
-                                                    PlayerOneScore, PlayerTwoScore,
-                                                    Skillz.SkillzTurnBasedRoundOutcome.SkillzRoundNoOutcome,
-                                                    Skillz.SkillzTurnBasedMatchOutcome.SkillzMatchNoOutcome);
+					SkillzSDK.Api.FinishTurn(Skillz_GameData.ToString(),
+					                         SkillzSDK.TurnBasedRoundOutcome.NoOutcome,
+					                         SkillzSDK.TurnBasedMatchOutcome.NoOutcome,
+					                         PlayerOneScore.ToString(),
+					                         PlayerOneScore, PlayerTwoScore);
                 }
             }
         }

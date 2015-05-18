@@ -19,13 +19,13 @@ public class GameplayController_ReviewTurn : GameplayController
 
     public void ReturnToSkillz()
     {
-        Skillz.finishReviewingCurrentGameState();
+		SkillzSDK.Api.FinishReviewingTurn();
     }
 
     void Start()
     {
         //Make sure the tournament data is valid.
-        if (!Skillz.tournamentIsInProgress())
+        if (!SkillzSDK.Api.IsTournamentInProgress)
         {
             Debug.LogError("Not in a Skillz tournament!");
         }
@@ -53,7 +53,7 @@ public class GameplayController_ReviewTurn : GameplayController
             }
         }
     }
-
+	
     protected override void Update()
     {
         LocalPlayer.IsInputDisabled = true;

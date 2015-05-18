@@ -4,9 +4,10 @@ using System.Collections;
 
 public class GameInitScript : MonoBehaviour
 {
-	void Start()
+	//Once all initialization stuff has had time to run, start the main menu
+	void Update()
 	{
-		Skillz.skillzInitForGameIdAndEnvironment("1016", Skillz.SkillzEnvironment.SkillzSandbox);
 		Application.LoadLevel("MainMenu");
+		Destroy(this);
 	}
 }
