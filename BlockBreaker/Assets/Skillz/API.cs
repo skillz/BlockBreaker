@@ -99,6 +99,13 @@ namespace SkillzSDK
         #endregion //Native iOS API
 
 
+        /// <summary>
+        /// The inclusive range of possible values for the SkillzDifficulty field.
+        /// </summary>
+        public const uint SkillzDifficultyMin = 1,
+                          SkillzDifficultyMax = 10;
+
+
         #region Properties
 
         /// <summary>
@@ -187,7 +194,7 @@ namespace SkillzSDK
 
         /// <summary>
         /// Call this method every time the player's score changes during a Skillz match.
-        /// This provides important analytics and tracking for your game.
+        /// This adds important anti-cheating functionality to your game.
         /// </summary>
         /// 
         /// <param name="currentScoreForPlayer">The player's current score.</param>

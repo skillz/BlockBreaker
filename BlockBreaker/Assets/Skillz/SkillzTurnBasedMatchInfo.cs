@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 
 using SkillzInfoDict = System.Collections.Generic.Dictionary<string, object>;
-using SkillzRoundOutcome = SkillzSDK.TurnBasedRoundOutcome;
 
 namespace SkillzSDK
 {
@@ -17,7 +16,7 @@ namespace SkillzSDK
 		/// <summary>
 		/// The outcome of the round. If this is the current round, it will be set to "SkillzRoundNoOutcome".
 		/// </summary>
-		public SkillzRoundOutcome Outcome;
+		public SkillzSDK.TurnBasedRoundOutcome Outcome;
 		
 		/// <summary>
 		/// Each player's score by the end of the round.
@@ -70,12 +69,24 @@ namespace SkillzSDK
 		/// The time the tournament began, in UTC.
 		/// </summary>
 		public DateTime TimeTournamentBegan;
+
+		/// <summary>
+		/// Whether the match has already ended.
+		/// This should be false unless the player is reviewing the game state of a finished match.
+		/// </summary>
+		public bool IsMatchOver;
 		
 		/// <summary>
 		/// All the rounds so far in this game, in order.
-		/// The current round is at the end of the list.
+		/// The current round is the last element in the list.
 		/// </summary>
 		public List<TurnBasedRound> Rounds;
+
+		/// <summary>
+		/// The 1-based index of the current round.
+		/// Each round is two turns.
+		/// </summary>
+		public int CurrentTurnIndex;
 		
 		/// <summary>
 		/// Information that is only available if this isn't the first turn.
@@ -98,11 +109,14 @@ namespace SkillzSDK
 			TournamentParams = new Dictionary<string, string>();
 			SkillzDifficulty = null;
 			ContinueMatchData = null;
-			
+			IsMatchOver = false;
+			CurrentTurnIndex = 1;
+
 			string tryKey = "[null]";
 			try
 			{
-				//Any key that isn't one of these built-in parameters is a custom tournament parameter.
+				//Keep track of all the built-in parameter keys that we use.
+				//Anything left over is a custom Game Parameter.
 				List<string> keysSoFar = new List<string>();
 
 				tryKey = "playerUniqueId";
@@ -123,6 +137,9 @@ namespace SkillzSDK
 				PlayerAvatarURL = matchInfo[tryKey].ToString();
 				keysSoFar.Add(tryKey);
 				
+				tryKey = "isGameComplete";
+				IsMatchOver = !(matchInfo[tryKey].ToString() == "False");
+				keysSoFar.Add("isGameComplete");
 				
 				//The date is in the form "yyyy-mm-dd hh:mm:ss +0000".
 				tryKey = "tournamentBeganDate";
@@ -134,6 +151,10 @@ namespace SkillzSDK
 				minute = int.Parse(date.Substring(14, 2)),
 				second = int.Parse(date.Substring(17, 2));
 				TimeTournamentBegan = new DateTime(year, month, day, hour, minute, second);
+				keysSoFar.Add(tryKey);
+
+				tryKey = "currentTurnIndex";
+				CurrentTurnIndex = int.Parse(matchInfo[tryKey].ToString());
 				keysSoFar.Add(tryKey);
 				
 				
@@ -165,17 +186,17 @@ namespace SkillzSDK
 					switch (roundOutcome)
 					{
 						case 0:
-							roundData.Outcome = SkillzRoundOutcome.Loss;
+							roundData.Outcome = SkillzSDK.TurnBasedRoundOutcome.Loss;
 							break;
 						case 1:
-							roundData.Outcome = SkillzRoundOutcome.Win;
+							roundData.Outcome = SkillzSDK.TurnBasedRoundOutcome.Win;
 							break;
 						case 2:
-							roundData.Outcome = SkillzRoundOutcome.Draw;
+							roundData.Outcome = SkillzSDK.TurnBasedRoundOutcome.Draw;
 							break;
 						case 3:
 						case 4:
-							roundData.Outcome = SkillzRoundOutcome.NoOutcome;
+							roundData.Outcome = SkillzSDK.TurnBasedRoundOutcome.NoOutcome;
 							break;
 							
 						default:

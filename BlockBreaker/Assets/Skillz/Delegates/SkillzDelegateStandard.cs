@@ -28,6 +28,5 @@ namespace SkillzSDK
         /// Called when a match was just finished and the Skillz UI is about to take over again.
         /// </summary>
         public virtual void OnTournamentCompleted() { }
-
-	}
+    }
 }

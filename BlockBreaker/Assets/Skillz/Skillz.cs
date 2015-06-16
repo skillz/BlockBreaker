@@ -3,7 +3,7 @@ using System.Collections;
 using System.Runtime.InteropServices;
 
 /// <summary>
-/// Wrapper for the Skillz native Objective-C API.
+/// The *deprecated* wrapper for the Skillz native Objective-C API. Use the Api class instead.
 /// </summary>
 [System.Obsolete("Use the SkillzSDK.Api class instead")]
 public class Skillz : MonoBehaviour

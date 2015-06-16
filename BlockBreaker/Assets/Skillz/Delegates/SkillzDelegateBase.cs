@@ -16,7 +16,7 @@ namespace SkillzSDK
         /// Called when the Skillz UI will exit back to the Unity game.
         /// The player should generally be taken back to whatever screen Skillz was launched from (presumably the main menu).
         /// </summary>
-		public virtual void OnSkillzWillExit() { }
+        public virtual void OnSkillzWillExit() { }
         
         /// <summary>
         /// Called when the Skillz UI is about to launch.
@@ -31,6 +31,6 @@ namespace SkillzSDK
         /// <summary>
         /// Called when the player aborted a match.
         /// </summary>
-		public virtual void OnTournamentAborted() { }
+        public virtual void OnTournamentAborted() { }
     }
 }

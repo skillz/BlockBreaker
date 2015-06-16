@@ -16,13 +16,13 @@ namespace SkillzSDK
         /// <summary>
         /// Called when a new round for the given turn-based tournament is about to begin.
         /// </summary>
-		public abstract void OnTurnBasedTournamentWillBegin(TurnBasedMatch matchInfo);
+        public abstract void OnTurnBasedTournamentWillBegin(TurnBasedMatch matchInfo);
 
 
         /// <summary>
         /// Called when the player is finished his turn and the Skillz UI is about to take over again.
         /// </summary>
-		public virtual void OnTurnEnd() { }
+        public virtual void OnTurnEnd() { }
         
 
         /// <summary>
@@ -30,12 +30,12 @@ namespace SkillzSDK
         /// This functionality is optional -- specified in the Developer Portal
         ///  (https://www.developer.skillz.com/developer) -- but recommended.
         /// </summary>
-		public virtual void OnTurnBasedReviewWillBegin(TurnBasedMatch matchInfo) { }
+        public virtual void OnTurnBasedReviewWillBegin(TurnBasedMatch matchInfo) { }
 
         /// <summary>
         /// Called when the player is finished reviewing the current state of a turn-based game,
         ///  and the Skillz UI is about to take over again.
         /// </summary>
-		public virtual void OnReviewEnd() { }
+        public virtual void OnReviewEnd() { }
     }
 }

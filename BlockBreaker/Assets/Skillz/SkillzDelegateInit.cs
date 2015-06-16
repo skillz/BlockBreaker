@@ -16,7 +16,11 @@ namespace SkillzSDK
 		public SkillzSDK.Environment SkillzEnvironment = SkillzSDK.Environment.Sandbox;
 
 
-		void Start()
+		/// <summary>
+		/// Once the scene starts up, this script initializes Skillz
+		/// and makes the owner GameObject persistent through scene changes.
+		/// </summary>
+		void Awake()
 		{
 			//If Skillz has already been initialized, then an instance of this delegate object already exists.
 			if (initializedYet)
