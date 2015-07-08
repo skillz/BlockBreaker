@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -111,15 +111,15 @@ public class GameplayController_Timed : GameplayController
 		}
 
 		//Update UI.
-        float val = GameConstants.CutOffDecimals(TimeLeft, 1);
-        if (val == (int)val)
-        {
-            TimeLeftLabel.text = val.ToString() + ".0";
-        }
-        else
-        {
-            TimeLeftLabel.text = val.ToString();
-        }
+		float val = GameConstants.CutOffDecimals(TimeLeft, 1);
+		if (val == (int)val)
+		{
+			TimeLeftLabel.text = val.ToString() + ".0";
+		}
+		else
+		{
+			TimeLeftLabel.text = val.ToString();
+		}
 	}
 
 
