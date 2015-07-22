@@ -3,11 +3,14 @@ using System.Collections.Generic;
 
 public class MySkillzDelegateStandard : SkillzSDK.SkillzDelegateStandard
 {
-	public override void OnTournamentWillBegin(Dictionary<string, string> gameRules)
+	public override void OnTournamentWillBegin(SkillzSDK.Match matchInfo)
 	{
+		Debug.Log(matchInfo);
+
 		//Parse the Skillz difficulty and go to the timed match scene.
 		Application.LoadLevel("TimedGameScene");
 		
+		Dictionary<string, string> gameRules = matchInfo.GameParams;
 		if (gameRules.ContainsKey("skillz_difficulty"))
 		{
 			MySkillzDelegate.SkillzDifficulty = System.Int32.Parse(gameRules["skillz_difficulty"]);

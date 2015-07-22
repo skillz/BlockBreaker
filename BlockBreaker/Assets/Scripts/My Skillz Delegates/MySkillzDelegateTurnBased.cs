@@ -30,7 +30,7 @@ public class MySkillzDelegateTurnBased : SkillzSDK.SkillzDelegateTurnBased
 		
 		TBMInfo = matchInfo;
 		
-		PlayerUniqueID = matchInfo.PlayerID.ToString();
+		PlayerUniqueID = matchInfo.Player.ID.ToString();
 		if (TBMInfo.SkillzDifficulty.HasValue)
 		{
 			MySkillzDelegate.SkillzDifficulty = (int)TBMInfo.SkillzDifficulty.Value;
@@ -69,7 +69,7 @@ public class MySkillzDelegateTurnBased : SkillzSDK.SkillzDelegateTurnBased
 		
 		//Read in the player ID and the game data.
 		
-		PlayerUniqueID = TBMInfo.PlayerID.ToString();
+		PlayerUniqueID = TBMInfo.Player.ID.ToString();
 		
 		GameplayController_TurnBased.Skillz_GameData = new TurnBasedGameData();
 		if (!GameData.ParseFrom(matchInfo.ContinueMatchData.Value.GameData))
