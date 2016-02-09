@@ -5,7 +5,7 @@
 //  Copyright (c) 2015 Skillz. All rights reserved.
 //
 
-#import <SkillzSDK-iOS/Skillz.h>
+#import <Skillz/Skillz.h>
 #include <string>
 
 #include "UnityInterface.h"
@@ -530,6 +530,10 @@ extern "C" void _finishReviewingCurrentGameState()
 // C-style wrapper for shouldSkillzLaunch so that it can be access by Unity in C#
 extern "C" void _setShouldSkillzLaunchFromURL(const bool allowLaunch) {
     ((UnitySkillzSDKDelegate*)[Skillz skillzInstance].skillzDelegate).shouldLaunchFromURL = allowLaunch;
+}
+
+extern "C" float _getRandomFloat() {
+    return (float) [Skillz getRandomFloat];
 }
 
 //################################################################################
