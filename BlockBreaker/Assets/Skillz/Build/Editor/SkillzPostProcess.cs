@@ -6,6 +6,7 @@ using System.Diagnostics;
 
 namespace SkillzInternal
 {
+	using UnityEditor.SKZXCodeEditor;
 	//Disable warnings about code blocks that will never be reached.
 	#pragma warning disable 162, 429
 
@@ -27,16 +28,16 @@ namespace SkillzInternal
 		/// The full path of the "SkillzSDK-iOS.embeddedframework" folder that came with the downloaded Skillz SDK.
 		/// Only used if "AutoBuild_Use" is true.
 		/// </summary>
-		private const string AutoBuild_SkillzPath = "/Users/myUsername/Downloads/sdk_ios_10.1.19/SkillzSDK-iOS.embeddedframework";
+		private const string AutoBuild_SkillzPath = "/Users/myUsername/Downloads/sdk_ios_10.1.19/Skillz.framework";
 
 
 		/// <summary>
 		/// A file with this name is used to track whether a build is appending or replacing.
 		/// </summary>
 		private const string checkAppendFileName = ".skillzTouch";
-		
 
-		[UnityEditor.Callbacks.PostProcessBuild(int.MinValue)]
+
+		[UnityEditor.Callbacks.PostProcessBuild(9090)]
 		public static void OnPostProcessBuild(BuildTarget build, string path)
 		{
 			//Make sure this build is for iOS.
@@ -51,7 +52,7 @@ namespace SkillzInternal
 				UnityEngine.Debug.LogError("Skillz cannot be set up for XCode automatically on a platform other than OSX.");
 				return;
 			}
-			
+
 			//Get whether this is an append build by checking whether a custom file has already been created.
 			//If it is, then nothing needs to be modified.
 			string checkAppendFilePath = Path.Combine(path, checkAppendFileName);
@@ -60,27 +61,57 @@ namespace SkillzInternal
 			{
 				return;
 			}
-			
+
 			checkAppend.Create().Close();
-			
-			bool trySetUp = SetUpOrientation(path) && SetUpSDKFiles(path);
+
+			bool trySetUp = SetUpOrientation (path);
 			if (!trySetUp)
 			{
 				//These failures aren't fatal; the developer can do them manually.
-				UnityEngine.Debug.LogWarning("Skillz automated steps failed!");
+				UnityEngine.Debug.LogWarning("Skillz XCode export is missing device orientation!");
+			}
+
+			trySetUp = SetUpSDKFiles (path);
+			if (!trySetUp)
+			{
+				//These failures aren't fatal; the developer can do them manually.
+				UnityEngine.Debug.LogWarning("Skillz XCode export is missing Skillz Framework.");
 			}
 
 			//Set up XCode project settings.
 			SkillzXCProjEdit editProj = SkillzXCProjEdit.LoadXCProj(path);
 			if (editProj == null ||
-			    !editProj.AddLinkerFlags() || !editProj.AddSkillzFiles() || !editProj.AddRunScript() ||
+			    !editProj.AddRunScript() ||
 			    !editProj.SaveChanges())
 			{
 				UnityEngine.Debug.LogError("Skillz automated XCode editing failed!");
 				return;
 			}
+
+			XCProject project = new XCProject (path);
+			if (project != null) {
+				project.AddFile (path + "/Skillz.framework", 
+				                 project.GetGroup ("Embed Frameworks"), 
+				                 "SOURCE_ROOT",
+				                 true,
+				                 false,
+				                 true);
+
+				//AddFile should also add FrameworkSearchPaths if required but doesn't
+				project.AddFrameworkSearchPaths ("$(PROJECT_DIR)");
+				project.AddOtherLDFlags ("-ObjC -lc++ -lz -lsqlite3 -lxml2 -weak_framework PassKit -framework Skillz");				
+
+				//Unity_4 doesn't exist so we check for Unity 5 defines.  Unity 6 is used for futureproofing. 
+#if !UNITY_5 && !UNITY_6
+				project.AddFile(Application.dataPath + "/Skillz/Build/IncludeInXcode/Skillz+Unity.mm");
+#endif
+				project.Save ();
+			} else {
+				UnityEngine.Debug.LogError("Skillz automated XCode export failed!"); 
+				return;
+			}
 		}
-		
+
 		private static bool SetUpOrientation(string path)
 		{
 			//Get the orientation setting to use.
@@ -98,10 +129,10 @@ namespace SkillzInternal
 			{
 				desiredOrientation = "UIInterfaceOrientationMaskLandscape";
 			}
-			
+
 			const string codeFilePath = "Classes/UnityAppController.mm";
 			string fullCodePath = Path.Combine(path, codeFilePath);
-			
+
 			//Try reading in the relevant code file.
 			string codeContent = "";
 			StreamReader streamIn = null;
@@ -122,7 +153,7 @@ namespace SkillzInternal
 					streamIn.Close();
 				}
 			}
-			
+
 			//Find the start of the function.
 			int start = codeContent.IndexOf("supportedInterfaceOrientationsForWindow");
 			if (start == -1)
@@ -130,7 +161,7 @@ namespace SkillzInternal
 				PrintOrientationSetError(new InvalidDataException("Couldn't find orientation function in the code file!"));
 				return false;
 			}
-			
+
 			//Find the start/end of the function body and replace it with the chosen orientation.
 			int openBrace = codeContent.IndexOf('{', start),
 			closeBrace = codeContent.IndexOf('}', openBrace);
@@ -142,7 +173,7 @@ namespace SkillzInternal
 			codeContent = codeContent.Remove(openBrace + 1, closeBrace - openBrace - 1);
 			codeContent = codeContent.Insert(openBrace + 1,
 			                                 "\n\treturn " + desiredOrientation + ";\n");
-			
+
 			//Save the modified code back out to the original file.
 			StreamWriter streamOut = null;
 			try
@@ -196,24 +227,24 @@ namespace SkillzInternal
 					                            "OK");
 				}
 			}
-			while (askForPath && Path.GetFileName(sdkPath) != "SkillzSDK-iOS.embeddedframework")
+			while (askForPath && Path.GetFileName(sdkPath) != "Skillz.framework")
 			{
 				//If the user hit "cancel" on the dialog, quit out.
 				if (sdkPath == "")
 				{
-					UnityEngine.Debug.Log("You canceled the auto-copying of the 'SkillzSDK-iOS.embeddedframework' folder. " +
+					UnityEngine.Debug.Log("You canceled the auto-copying of the 'Skillz.framework'. " +
 										  "You must copy it yourself into '" + projPath + "' before building the XCode project.");
 					return true;
 				}
 
-				sdkPath = EditorUtility.OpenFolderPanel("Select the SkillzSDK-iOS.embeddedframework folder",
+				sdkPath = EditorUtility.OpenFolderPanel("Select the Skillz.framework file",
 				                                        "", "");
 			}
 
 			//Copy the SDK files into the XCode project.
 			try
 			{
-				DirectoryInfo newDir = new DirectoryInfo(Path.Combine(projPath, "SkillzSDK-iOS.embeddedframework"));
+				DirectoryInfo newDir = new DirectoryInfo(Path.Combine(projPath, "Skillz.framework"));
 				if (newDir.Exists)
 				{
 					newDir.Delete();
@@ -222,7 +253,7 @@ namespace SkillzInternal
 				if (!CopyFolder(new DirectoryInfo(sdkPath), newDir))
 				{
 					newDir.Delete();
-					throw new IOException("Couldn't copy the .embeddedframework contents");
+					throw new IOException("Couldn't copy the .framework contents");
 				}
 			}
 			catch (System.Exception e)
